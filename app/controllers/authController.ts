@@ -1,14 +1,13 @@
-import { Request, Response } from "express";
-import { ERole, ISignInRequest, ISignUpRequest } from "../types/auth";
-import handleConfig from "../configs/handleConfig";
-import userSchema from "../models/userSchema";
-import bcrypt from "bcrypt";
-import { signAccessToken } from "../jwt";
+import { Request, Response } from 'express';
+import { ERole, ISignInRequest, ISignUpRequest, IUserSchema } from '../types/auth';
+import handleConfig from '../configs/handleConfig';
+import userSchema from '../models/userSchema';
+import bcrypt from 'bcrypt';
+import { signAccessToken } from '../jwt';
 
 class AuthController {
   public async signUp(req: Request, res: Response) {
-    const { email, password, confirmPassword, firstName, lastName } =
-      req.body as ISignUpRequest;
+    const { email, password, confirmPassword, firstName, lastName } = req.body as ISignUpRequest;
 
     if (!email || !password || !confirmPassword || !firstName || !lastName) {
       return handleConfig.response.badRequest(res);
@@ -22,7 +21,7 @@ class AuthController {
       const emailExist = await userSchema.findOne({ email });
 
       if (emailExist) {
-        return handleConfig.response.badRequest(res, "Email already exist!");
+        return handleConfig.response.badRequest(res, 'Email already exist!');
       }
 
       const hash = await bcrypt.hash(password, 12);
@@ -36,7 +35,7 @@ class AuthController {
       });
 
       return res.json({
-        message: "Sign up successfully!",
+        message: 'Sign up successfully!',
       });
     } catch (error) {
       return handleConfig.response.error(res);
@@ -54,29 +53,18 @@ class AuthController {
       const userExist = await userSchema.findOne({ email });
 
       if (!userExist) {
-        return handleConfig.response.badRequest(
-          res,
-          "Email or password is not correct!"
-        );
+        return handleConfig.response.badRequest(res, 'Email or password is not correct!');
       }
 
       const match = await bcrypt.compare(password, userExist.password);
 
       if (!match) {
-        return handleConfig.response.badRequest(
-          res,
-          "Email or password is not correct!"
-        );
+        return handleConfig.response.badRequest(res, 'Email or password is not correct!');
       }
 
       const accessToken = await signAccessToken(userExist._id);
 
-      return handleConfig.response.success(
-        res,
-        "Sign in successfully!",
-        "accessToken",
-        accessToken
-      );
+      return handleConfig.response.success(res, 'Sign in successfully!', 'accessToken', accessToken);
     } catch (error) {
       return handleConfig.response.error(res);
     }
@@ -101,8 +89,6 @@ class AuthController {
       return handleConfig.response.error(res);
     }
   }
-
-  public async updateMe(req: Request, res: Response) {}
 }
 
 export default new AuthController();
