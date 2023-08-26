@@ -64,7 +64,7 @@ class AuthController {
 
       const accessToken = await signAccessToken(userExist._id);
 
-      return handleConfig.response.success(res, 'Sign in successfully!', 'accessToken', accessToken);
+      return handleConfig.response.success(res, 'Sign in successfully!', 'data', { role: userExist.role, accessToken });
     } catch (error) {
       return handleConfig.response.error(res);
     }
