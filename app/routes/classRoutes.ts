@@ -1,9 +1,9 @@
-import { Router } from "express";
-import ClassController from "../controllers/classController";
+import { Router } from 'express';
+import ClassController from '../controllers/classController';
 
 const classRoutes = (router: Router) => {
-  router.post("/class", ClassController.createClass);
-  router.get("/class", ClassController.getClasses);
+  router.post('/classes', ClassController.createClass);
+  router.get('/classes', ClassController.getClasses);
 };
 
 export default classRoutes;

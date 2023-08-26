@@ -20,10 +20,10 @@ class TeacherController {
         return handleConfig.response.conflict(res, 'Email already exist!');
       }
 
-      const classForTeacher = await classSchema.findOne({ name: classSchool });
+      const classData = await classSchema.findOne({ name: classSchool });
 
-      if (!classForTeacher) {
-        return handleConfig.response.notFound(res, 'Class not found!');
+      if (!classData) {
+        return handleConfig.response.notFound(res, 'Class is not found!');
       }
 
       const hash = await bcrypt.hash(password, 11);
@@ -32,7 +32,7 @@ class TeacherController {
         avatar: '',
         fullName,
         subjects,
-        classSchool: classForTeacher._id,
+        classSchool: classData._id,
         email,
         password: hash,
         phone,
@@ -41,7 +41,7 @@ class TeacherController {
 
       return handleConfig.response.success(res, 'Create teacher successfully!', 'data', teacherData);
     } catch (error) {
-      return handleConfig.response.error(res);
+      return handleConfig.response.error(res, 'Create teacher failure!');
     }
   }
 
@@ -49,10 +49,10 @@ class TeacherController {
     const keyword = req.query.q;
 
     try {
-      let teacher;
+      let teachers;
 
       if (keyword) {
-        teacher = await teacherSchema
+        teachers = await teacherSchema
           .find({
             $or: [
               { fullName: { $regex: `.*${keyword}.*`, $options: 'i' } },
@@ -62,12 +62,12 @@ class TeacherController {
           .populate('subjects', '-__v')
           .populate('classSchool', '-__v');
       } else {
-        teacher = await teacherSchema.find().populate('subjects', '-__v').populate('classSchool', '-__v');
+        teachers = await teacherSchema.find().populate('subjects', '-__v').populate('classSchool', '-__v');
       }
 
-      return res.json(teacher);
+      return res.json(teachers);
     } catch (error) {
-      return handleConfig.response.error(res);
+      return handleConfig.response.error(res, 'Get teachers failure!');
     }
   }
 
@@ -76,9 +76,9 @@ class TeacherController {
     const { fullName, subjects, classSchool, email, password, phone, gender } = req.body;
 
     try {
-      const classSchoolData = await classSchema.findOne({ name: classSchool });
+      const classData = await classSchema.findOne({ name: classSchool });
 
-      if (!classSchoolData) {
+      if (!classData) {
         return handleConfig.response.notFound(res, 'Class is not found!');
       }
 
@@ -90,7 +90,7 @@ class TeacherController {
           $set: {
             fullName,
             subjects,
-            classSchool: classSchoolData._id,
+            classSchool: classData._id,
             email,
             password,
             phone,
@@ -102,10 +102,10 @@ class TeacherController {
         },
       );
 
-      return handleConfig.response.success(res, 'Update teacher successfully!');
+      return handleConfig.response.success(res, 'Update teacher successfully!', 'data', teacherUpdated);
     } catch (error) {
       console.log(error);
-      return handleConfig.response.error(res);
+      return handleConfig.response.error(res, 'Update teacher failure!');
     }
   }
 
@@ -119,9 +119,9 @@ class TeacherController {
     try {
       await teacherSchema.findByIdAndDelete(teacherId);
 
-      return handleConfig.response.success(res, 'Delete teacher successfully!');
+      return handleConfig.response.success(res, 'Delete teacher successfully!', 'teacherId', teacherId);
     } catch (error) {
-      return handleConfig.response.error(res);
+      return handleConfig.response.error(res, 'Delete teacher failure!');
     }
   }
 }
