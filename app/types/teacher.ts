@@ -1,10 +1,10 @@
-import { ObjectId } from "mongoose";
+import { ObjectId } from 'mongoose';
 
 export interface ITeacherSchema {
   avatar: string;
   fullName: string;
   subjects: ObjectId[];
-  class: ObjectId;
+  classSchool: ObjectId;
   email: string;
   password: string;
   phone: string;
@@ -13,8 +13,11 @@ export interface ITeacherSchema {
 
 export interface ITeacherRequest {
   fullName: string;
-  subjects: ObjectId[];
-  class: string;
+  subjects: {
+    _id: string;
+    name: string;
+  }[];
+  classSchool: string;
   email: string;
   password: string;
   phone: string;
