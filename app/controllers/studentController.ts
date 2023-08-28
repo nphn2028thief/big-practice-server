@@ -79,6 +79,8 @@ class StudentController {
         return handleConfig.response.notFound(res, 'Class is not found!');
       }
 
+      const hash = await bcrypt.hash(password, 12)
+
       const studentUpdated = await studentSchema.findByIdAndUpdate(
         {
           _id: studentId,
@@ -89,7 +91,7 @@ class StudentController {
             fullName,
             classSchool: classData._id,
             email,
-            password,
+            password: hash,
             phone,
             gender,
           },
