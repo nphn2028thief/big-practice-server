@@ -1,9 +1,12 @@
-import { ObjectId } from 'mongoose';
+import { ObjectId } from "mongoose";
 
 export interface ITeacherSchema {
   avatar: string;
   fullName: string;
-  subjects: ObjectId[];
+  // subjects: ObjectId[];
+  subjects: {
+    name: string;
+  }[];
   classSchool: ObjectId;
   email: string;
   password: string;
@@ -14,7 +17,6 @@ export interface ITeacherSchema {
 export interface ITeacherRequest {
   fullName: string;
   subjects: {
-    _id: string;
     name: string;
   }[];
   classSchool: string;
