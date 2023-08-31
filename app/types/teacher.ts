@@ -4,9 +4,7 @@ export interface ITeacherSchema {
   avatar: string;
   fullName: string;
   // subjects: ObjectId[];
-  subjects: {
-    name: string;
-  }[];
+  subjects: ObjectId[];
   classSchool: ObjectId;
   email: string;
   password: string;
