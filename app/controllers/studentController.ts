@@ -57,9 +57,10 @@ class StudentController {
               { email: { $regex: `.*${keyword}.*`, $options: 'i' } },
             ],
           })
+          .select('-password')
           .populate('classSchool', '-__v');
       } else {
-        students = await studentSchema.find().populate('classSchool', '-__v');
+        students = await studentSchema.find().select('-password').populate('classSchool', '-__v');
       }
 
       return res.json(students);
@@ -70,7 +71,7 @@ class StudentController {
 
   public async updateStudent(req: Request, res: Response) {
     const { studentId } = req.params;
-    const { avatar, fullName, classSchool, email, password, phone, gender } = req.body as IStudentSchema;
+    const { avatar, fullName, classSchool, email, phone, gender } = req.body as Omit<IStudentSchema, 'password'>;
 
     try {
       const classData = await classSchema.findOne({ name: classSchool });
@@ -78,8 +79,6 @@ class StudentController {
       if (!classData) {
         return handleConfig.response.notFound(res, 'Class is not found!');
       }
-
-      const hash = await bcrypt.hash(password, 12)
 
       const studentUpdated = await studentSchema.findByIdAndUpdate(
         {
@@ -91,7 +90,6 @@ class StudentController {
             fullName,
             classSchool: classData._id,
             email,
-            password: hash,
             phone,
             gender,
           },
