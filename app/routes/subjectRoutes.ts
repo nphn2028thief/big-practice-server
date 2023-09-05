@@ -1,4 +1,5 @@
 import { Router } from "express";
+
 import SubjectController from "../controllers/subjectController";
 
 const subjectRoutes = (router: Router) => {

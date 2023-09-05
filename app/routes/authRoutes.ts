@@ -1,6 +1,7 @@
 import { Router } from 'express';
-import AuthController from '../controllers/authController';
+
 import { verifyToken } from '../middlewares/auth';
+import AuthController from '../controllers/authController';
 
 const authRoutes = (router: Router) => {
   router.post('/auth/signUp', AuthController.signUp);

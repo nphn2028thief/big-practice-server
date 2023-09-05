@@ -1,7 +1,8 @@
 import { Request, Response } from "express";
-import { IClassSchema } from "../types/class";
+
 import handleConfig from "../configs/handleConfig";
 import classSchema from "../models/classSchema";
+import { IClassSchema } from "../types/class";
 
 class ClassController {
   public async createClass(req: Request, res: Response) {
