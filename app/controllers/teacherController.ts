@@ -1,40 +1,38 @@
-import bcrypt from 'bcrypt';
-import { Request, Response } from 'express';
-import handleConfig from '../configs/handleConfig';
-import classSchema from '../models/classSchema';
-import teacherSchema from '../models/teacherSchema';
-import { ITeacherRequest } from '../types/teacher';
-import subjectSchema from '../models/subjectSchema';
-import { ISubjectSchema } from '../types/subject';
+import { Request, Response } from "express";
+import bcrypt from "bcrypt";
+
+import handleConfig from "../configs/handleConfig";
+import subjectSchema from "../models/subjectSchema";
+import classSchema from "../models/classSchema";
+import teacherSchema from "../models/teacherSchema";
+import { ITeacherRequest } from "../types/teacher";
+import { createTeacherValidate } from "../validations/teacher";
 
 class TeacherController {
-  private async handleSubject(subjects: ISubjectSchema[]) {
-    const newSubjects = subjects.map((subject) => subject.name);
-    return newSubjects;
-  }
-
   public async createTeacher(req: Request, res: Response) {
-    const { fullName, subjects, classSchool, email, password, phone, gender } = req.body as ITeacherRequest;
+    const { error, value } = createTeacherValidate(req.body as ITeacherRequest);
 
-    if (!fullName || !subjects || !classSchool || !email || !password || !phone || !gender) {
-      return handleConfig.response.badRequest(res);
+    if (error) {
+      return handleConfig.response.badRequest(res, error.details[0].message);
     }
 
     try {
-      const emailExist = await teacherSchema.findOne({ email });
+      const emailExist = await teacherSchema.findOne({ email: value.email });
 
       if (emailExist) {
-        return handleConfig.response.conflict(res, 'Email already exist!');
+        return handleConfig.response.conflict(res, "Email already exist!");
       }
 
-      const classData = await classSchema.findOne({ name: classSchool });
+      const classData = await classSchema.findOne({ name: value.classSchool });
 
       if (!classData) {
-        return handleConfig.response.notFound(res, 'Class is not found!');
+        return handleConfig.response.notFound(res, "Class is not found!");
       }
 
       const handleSubject = async () => {
-        const newSubjects = subjects.map((subject) => subject.name);
+        const newSubjects = value.subjects.map(
+          (subject: { name: string }) => subject.name
+        );
         return newSubjects;
       };
 
@@ -44,22 +42,27 @@ class TeacherController {
         name: { $in: results },
       });
 
-      const hash = await bcrypt.hash(password, 11);
+      const hash = await bcrypt.hash(value.password, 11);
 
       const teacherData = await teacherSchema.create({
-        avatar: '',
-        fullName,
+        avatar: "",
+        fullName: value.fullName,
         subjects: subjectsFound,
         classSchool: classData._id,
-        email,
+        email: value.email,
         password: hash,
-        phone,
-        gender,
+        phone: value.phone,
+        gender: value.gender,
       });
 
-      return handleConfig.response.success(res, 'Create teacher successfully!', 'data', teacherData);
+      return handleConfig.response.success(
+        res,
+        "Create teacher successfully!",
+        "data",
+        teacherData
+      );
     } catch (error) {
-      return handleConfig.response.error(res, 'Create teacher failure!');
+      return handleConfig.response.error(res, "Create teacher failure!");
     }
   }
 
@@ -73,36 +76,37 @@ class TeacherController {
         teachers = await teacherSchema
           .find({
             $or: [
-              { fullName: { $regex: `.*${keyword}.*`, $options: 'i' } },
-              { email: { $regex: `.*${keyword}.*`, $options: 'i' } },
+              { fullName: { $regex: `.*${keyword}.*`, $options: "i" } },
+              { email: { $regex: `.*${keyword}.*`, $options: "i" } },
             ],
           })
-          .select('-password')
-          .populate('subjects', '-__v')
-          .populate('classSchool', '-__v');
+          .select("-password")
+          .populate("subjects", "-__v")
+          .populate("classSchool", "-__v");
       } else {
         teachers = await teacherSchema
           .find()
-          .select('-password')
-          .populate('subjects', '-__v')
-          .populate('classSchool', '-__v');
+          .select("-password")
+          .populate("subjects", "-__v")
+          .populate("classSchool", "-__v");
       }
 
       return res.json(teachers);
     } catch (error) {
-      return handleConfig.response.error(res, 'Get teachers failure!');
+      return handleConfig.response.error(res, "Get teachers failure!");
     }
   }
 
   public async updateTeacher(req: Request, res: Response) {
     const { teacherId } = req.params;
-    const { fullName, subjects, classSchool, email, phone, gender } = req.body as Omit<ITeacherRequest, 'password'>;
+    const { fullName, subjects, classSchool, email, phone, gender } =
+      req.body as Omit<ITeacherRequest, "password">;
 
     try {
       const classData = await classSchema.findOne({ name: classSchool });
 
       if (!classData) {
-        return handleConfig.response.notFound(res, 'Class is not found!');
+        return handleConfig.response.notFound(res, "Class is not found!");
       }
 
       const handleSubject = async () => {
@@ -132,13 +136,17 @@ class TeacherController {
         },
         {
           new: true,
-        },
+        }
       );
 
-      return handleConfig.response.success(res, 'Update teacher successfully!', 'data', teacherUpdated);
+      return handleConfig.response.success(
+        res,
+        "Update teacher successfully!",
+        "data",
+        teacherUpdated
+      );
     } catch (error) {
-      console.log(error);
-      return handleConfig.response.error(res, 'Update teacher failure!');
+      return handleConfig.response.error(res, "Update teacher failure!");
     }
   }
 
@@ -152,9 +160,14 @@ class TeacherController {
     try {
       await teacherSchema.findByIdAndDelete(teacherId);
 
-      return handleConfig.response.success(res, 'Delete teacher successfully!', 'teacherId', teacherId);
+      return handleConfig.response.success(
+        res,
+        "Delete teacher successfully!",
+        "teacherId",
+        teacherId
+      );
     } catch (error) {
-      return handleConfig.response.error(res, 'Delete teacher failure!');
+      return handleConfig.response.error(res, "Delete teacher failure!");
     }
   }
 }

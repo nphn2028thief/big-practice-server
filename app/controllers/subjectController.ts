@@ -1,7 +1,8 @@
 import { Request, Response } from "express";
-import { ISubjectSchema } from "../types/subject";
+
 import handleConfig from "../configs/handleConfig";
 import subjectSchema from "../models/subjectSchema";
+import { ISubjectSchema } from "../types/subject";
 
 class SubjectController {
   public async createSubject(req: Request, res: Response) {

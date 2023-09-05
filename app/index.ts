@@ -1,10 +1,11 @@
+import express, { NextFunction, Request, Response } from "express";
 import cors from "cors";
 import dotenv from "dotenv";
-import express, { NextFunction, Request, Response } from "express";
 import createHttpError from "http-errors";
 import morgan from "morgan";
-import envConfig from "./configs/envConfig";
+
 import connectToDB from "./database";
+import envConfig from "./configs/envConfig";
 import routes from "./routes";
 
 declare global {

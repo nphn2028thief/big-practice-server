@@ -1,4 +1,5 @@
 import { Router } from 'express';
+
 import TeacherController from '../controllers/teacherController';
 
 const teacherRoutes = (router: Router) => {

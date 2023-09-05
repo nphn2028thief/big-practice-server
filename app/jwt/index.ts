@@ -1,5 +1,6 @@
 import Jwt from 'jsonwebtoken';
 import mongoose from 'mongoose';
+
 import envConfig from '../configs/envConfig';
 
 export const signAccessToken = async (userId: mongoose.Types.ObjectId) => {

@@ -1,40 +1,42 @@
 import { Request, Response } from 'express';
-import { IStudentSchema } from '../types/student';
-import handleConfig from '../configs/handleConfig';
-import studentSchema from '../models/studentSchema';
-import classSchema from '../models/classSchema';
 import bcrypt from 'bcrypt';
+
+import handleConfig from '../configs/handleConfig';
+import classSchema from '../models/classSchema';
+import studentSchema from '../models/studentSchema';
+import { createStudentValidate } from '../validations/student';
+import { IStudentSchema } from '../types/student';
 
 class StudentController {
   public async createStudent(req: Request, res: Response) {
-    const { fullName, classSchool, email, password, phone, gender } = req.body as IStudentSchema;
+    const { error, value } = createStudentValidate(req.body as IStudentSchema)
 
-    if (!fullName || !classSchool || !email || !password || !phone || !gender) {
-      return handleConfig.response.badRequest(res);
+    if (error) {
+      return handleConfig.response.badRequest(res, error.details[0].message)
     }
 
     try {
-      const emailExist = await studentSchema.findOne({ email });
+      const emailExist = await studentSchema.findOne({ email: value.email });
 
       if (emailExist) {
         return handleConfig.response.conflict(res, 'Email already exist!');
       }
 
-      const classData = await classSchema.findOne({ name: classSchool });
+      const classData = await classSchema.findOne({ name: value.classSchool });
 
       if (!classData) {
         return handleConfig.response.notFound(res, 'Class is not found!');
       }
 
-      const hash = await bcrypt.hash(password, 12);
+      const hash = await bcrypt.hash(value.password, 12);
 
       const studentData = await studentSchema.create({
-        fullName,
+        fullName: value.fullName,
         classSchool: classData._id,
-        email,
+        email: value.email,
         password: hash,
-        phone,
-        gender,
+        phone: value.phone,
+        gender: value.gender,
       });
 
       return handleConfig.response.success(res, 'Create student successfully!', 'data', studentData);

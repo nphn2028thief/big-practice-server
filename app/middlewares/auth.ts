@@ -1,6 +1,7 @@
 import { NextFunction, Request, Response } from 'express';
 import Jwt from 'jsonwebtoken';
 import mongoose from 'mongoose';
+
 import envConfig from '../configs/envConfig';
 import handleConfig from '../configs/handleConfig';
 import { IVerifyTokenData } from '../types/auth';

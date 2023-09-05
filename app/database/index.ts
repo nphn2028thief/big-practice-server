@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+
 import envConfig from '../configs/envConfig';
 
 const connectToDB = async () => {

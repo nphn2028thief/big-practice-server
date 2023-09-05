@@ -1,41 +1,43 @@
-import { Request, Response } from 'express';
-import { ERole, ISignInRequest, ISignUpRequest, IUserSchema } from '../types/auth';
-import handleConfig from '../configs/handleConfig';
-import userSchema from '../models/userSchema';
-import bcrypt from 'bcrypt';
-import { signAccessToken } from '../jwt';
+import { Request, Response } from "express";
+import bcrypt from "bcrypt";
+
+import {
+  ERole,
+  ISignInRequest,
+  ISignUpRequest,
+} from "../types/auth";
+import handleConfig from "../configs/handleConfig";
+import userSchema from "../models/userSchema";
+import { signAccessToken } from "../jwt";
+import { signInValidate, signUpValidate } from "../validations/auth";
 
 class AuthController {
   public async signUp(req: Request, res: Response) {
-    const { email, password, confirmPassword, firstName, lastName } = req.body as ISignUpRequest;
+    const { error, value } = signUpValidate(req.body as ISignUpRequest);
 
-    if (!email || !password || !confirmPassword || !firstName || !lastName) {
-      return handleConfig.response.badRequest(res);
-    }
-
-    if (password !== confirmPassword) {
-      return handleConfig.response.badRequest(res);
+    if (error) {
+      return handleConfig.response.badRequest(res, error.details[0].message);
     }
 
     try {
-      const emailExist = await userSchema.findOne({ email });
+      const emailExist = await userSchema.findOne({ email: value.email });
 
       if (emailExist) {
-        return handleConfig.response.badRequest(res, 'Email already exist!');
+        return handleConfig.response.badRequest(res, "Email already exist!");
       }
 
-      const hash = await bcrypt.hash(password, 12);
+      const hash = await bcrypt.hash(value.password, 12);
 
       await userSchema.create({
-        email,
+        email: value.email,
         password: hash,
-        firstName,
-        lastName,
+        firstName: value.firstName,
+        lastName: value.lastName,
         role: ERole.ADMIN,
       });
 
       return res.json({
-        message: 'Sign up successfully!',
+        message: "Sign up successfully!",
       });
     } catch (error) {
       return handleConfig.response.error(res);
@@ -43,28 +45,39 @@ class AuthController {
   }
 
   public async signIn(req: Request, res: Response) {
-    const { email, password } = req.body as ISignInRequest;
+    const { error, value } = signInValidate(req.body as ISignInRequest);
 
-    if (!email || !password) {
-      return handleConfig.response.badRequest(res);
+    if (error) {
+      return handleConfig.response.badRequest(res, error.details[0].message);
     }
 
     try {
-      const userExist = await userSchema.findOne({ email });
+      const userExist = await userSchema.findOne({ email: value.email });
 
       if (!userExist) {
-        return handleConfig.response.badRequest(res, 'Email or password is not correct!');
+        return handleConfig.response.badRequest(
+          res,
+          "Email or password is not correct!"
+        );
       }
 
-      const match = await bcrypt.compare(password, userExist.password);
+      const match = await bcrypt.compare(value.password, userExist.password);
 
       if (!match) {
-        return handleConfig.response.badRequest(res, 'Email or password is not correct!');
+        return handleConfig.response.badRequest(
+          res,
+          "Email or password is not correct!"
+        );
       }
 
       const accessToken = await signAccessToken(userExist._id);
 
-      return handleConfig.response.success(res, 'Sign in successfully!', 'data', { role: userExist.role, accessToken });
+      return handleConfig.response.success(
+        res,
+        "Sign in successfully!",
+        "data",
+        { role: userExist.role, accessToken }
+      );
     } catch (error) {
       return handleConfig.response.error(res);
     }
