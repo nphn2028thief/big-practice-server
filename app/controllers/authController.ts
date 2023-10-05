@@ -61,7 +61,7 @@ class AuthController {
         );
       }
 
-      const match = await bcrypt.compare(value.password, userExist.password);
+      const match = await bcrypt.compare(value.password, userExist.password); 
 
       if (!match) {
         return handleConfig.response.badRequest(
