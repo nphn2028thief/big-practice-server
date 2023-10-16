@@ -1,12 +1,13 @@
 import { Router } from 'express';
 
 import TeacherController from '../controllers/teacherController';
+import { verifyToken } from '../middlewares/auth';
 
 const teacherRoutes = (router: Router) => {
-  router.post('/teachers', TeacherController.createTeacher);
-  router.get('/teachers', TeacherController.getTeachers);
-  router.patch('/teachers/:teacherId', TeacherController.updateTeacher);
-  router.delete('/teachers/:teacherId', TeacherController.deleteTeacher);
+  router.post('/teachers', verifyToken, TeacherController.createTeacher);
+  router.get('/teachers', verifyToken, TeacherController.getTeachers);
+  router.patch('/teachers/:teacherId', verifyToken, TeacherController.updateTeacher);
+  router.delete('/teachers/:teacherId', verifyToken, TeacherController.deleteTeacher);
 };
 
 export default teacherRoutes;
