@@ -1,31 +1,32 @@
-import { Request, Response } from 'express';
-import bcrypt from 'bcrypt';
+import { Request, Response } from "express";
+import mongoose from "mongoose";
+import bcrypt from "bcrypt";
 
-import handleConfig from '../configs/handleConfig';
-import classSchema from '../models/classSchema';
-import studentSchema from '../models/studentSchema';
-import { createStudentValidate } from '../validations/student';
-import { IStudentSchema } from '../types/student';
+import handleConfig from "../configs/handleConfig";
+import classSchema from "../models/classSchema";
+import studentSchema from "../models/studentSchema";
+import { createStudentValidate } from "../validations/student";
+import { IStudentSchema } from "../types/student";
 
 class StudentController {
   public async createStudent(req: Request, res: Response) {
-    const { error, value } = createStudentValidate(req.body as IStudentSchema)
+    const { error, value } = createStudentValidate(req.body as IStudentSchema);
 
     if (error) {
-      return handleConfig.response.badRequest(res, error.details[0].message)
+      return handleConfig.response.badRequest(res, error.details[0].message);
     }
 
     try {
       const emailExist = await studentSchema.findOne({ email: value.email });
 
       if (emailExist) {
-        return handleConfig.response.conflict(res, 'Email already exist!');
+        return handleConfig.response.conflict(res, "Email already exist!");
       }
 
       const classData = await classSchema.findOne({ name: value.classSchool });
 
       if (!classData) {
-        return handleConfig.response.notFound(res, 'Class is not found!');
+        return handleConfig.response.notFound(res, "Class is not found!");
       }
 
       const hash = await bcrypt.hash(value.password, 12);
@@ -39,9 +40,14 @@ class StudentController {
         gender: value.gender,
       });
 
-      return handleConfig.response.success(res, 'Create student successfully!', 'data', studentData);
+      return handleConfig.response.success(
+        res,
+        "Create student successfully!",
+        "data",
+        studentData
+      );
     } catch (error) {
-      return handleConfig.response.error(res, 'Create student failure!');
+      return handleConfig.response.error(res, "Create student failure!");
     }
   }
 
@@ -55,31 +61,55 @@ class StudentController {
         students = await studentSchema
           .find({
             $or: [
-              { fullName: { $regex: `.*${keyword}.*`, $options: 'i' } },
-              { email: { $regex: `.*${keyword}.*`, $options: 'i' } },
+              { fullName: { $regex: `.*${keyword}.*`, $options: "i" } },
+              { email: { $regex: `.*${keyword}.*`, $options: "i" } },
             ],
           })
-          .select('-password')
-          .populate('classSchool', '-__v');
+          .select("-password")
+          .populate("classSchool", "-__v");
       } else {
-        students = await studentSchema.find().select('-password').populate('classSchool', '-__v');
+        students = await studentSchema
+          .find()
+          .select("-password")
+          .populate("classSchool", "-__v");
       }
 
       return res.json(students);
     } catch (error) {
-      return handleConfig.response.error(res, 'Get students failure!');
+      return handleConfig.response.error(res, "Get students failure!");
+    }
+  }
+
+  public async getStudentById(req: Request, res: Response) {
+    const { studentId } = req.params;
+
+    if (!studentId && !mongoose.Types.ObjectId.isValid(studentId)) {
+      return handleConfig.response.badRequest(res);
+    }
+
+    try {
+      const student = await studentSchema.findById(studentId);
+
+      if (!student) {
+        return handleConfig.response.notFound(res, "Student not found!");
+      }
+
+      return res.json(student);
+    } catch (error) {
+      return handleConfig.response.error(res);
     }
   }
 
   public async updateStudent(req: Request, res: Response) {
     const { studentId } = req.params;
-    const { avatar, fullName, classSchool, email, phone, gender } = req.body as Omit<IStudentSchema, 'password'>;
+    const { avatar, fullName, classSchool, email, phone, gender } =
+      req.body as Omit<IStudentSchema, "password">;
 
     try {
       const classData = await classSchema.findOne({ name: classSchool });
 
       if (!classData) {
-        return handleConfig.response.notFound(res, 'Class is not found!');
+        return handleConfig.response.notFound(res, "Class is not found!");
       }
 
       const studentUpdated = await studentSchema.findByIdAndUpdate(
@@ -98,12 +128,17 @@ class StudentController {
         },
         {
           new: true,
-        },
+        }
       );
 
-      return handleConfig.response.success(res, 'Update student successfully!', 'data', studentUpdated);
+      return handleConfig.response.success(
+        res,
+        "Update student successfully!",
+        "data",
+        studentUpdated
+      );
     } catch (error) {
-      return handleConfig.response.error(res, 'Update student failure!');
+      return handleConfig.response.error(res, "Update student failure!");
     }
   }
 
@@ -117,9 +152,14 @@ class StudentController {
     try {
       await studentSchema.findByIdAndDelete(studentId);
 
-      return handleConfig.response.success(res, 'Delete student successfully!', 'studentId', studentId);
+      return handleConfig.response.success(
+        res,
+        "Delete student successfully!",
+        "studentId",
+        studentId
+      );
     } catch (error) {
-      return handleConfig.response.error(res, 'Delete student failure!');
+      return handleConfig.response.error(res, "Delete student failure!");
     }
   }
 }

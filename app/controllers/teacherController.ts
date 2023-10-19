@@ -1,4 +1,5 @@
 import { Request, Response } from "express";
+import mongoose from "mongoose";
 import bcrypt from "bcrypt";
 
 import handleConfig from "../configs/handleConfig";
@@ -93,7 +94,27 @@ class TeacherController {
 
       return res.json(teachers);
     } catch (error) {
-      return handleConfig.response.error(res, "Get teachers failure!");
+      return handleConfig.response.error(res);
+    }
+  }
+
+  public async getTeacherById(req: Request, res: Response) {
+    const { teacherId } = req.params;
+
+    if (!teacherId && !mongoose.Types.ObjectId.isValid(teacherId)) {
+      return handleConfig.response.badRequest(res);
+    }
+
+    try {
+      const teacher = await teacherSchema.findById(teacherId);
+
+      if (!teacher) {
+        return handleConfig.response.notFound(res, "Teacher not found!");
+      }
+
+      return res.json(teacher);
+    } catch (error) {
+      return handleConfig.response.error(res);
     }
   }
 

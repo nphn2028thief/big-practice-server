@@ -15,7 +15,7 @@ export const createTeacherValidate = (data: ITeacherRequest) => {
             "string.empty": "Subject can not be empty!",
             "any.required": "Subject is required!",
           }),
-        })
+        }).required()
       )
       .required()
       .messages({
