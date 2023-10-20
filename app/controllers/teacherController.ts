@@ -123,6 +123,16 @@ class TeacherController {
     const { fullName, subjects, classSchool, email, phone, gender } =
       req.body as Omit<ITeacherRequest, "password">;
 
+    if (!subjects.length) {
+      return handleConfig.response.badRequest(res);
+    }
+
+    for (let key in subjects) {
+      if (!subjects[key].name) {
+        return handleConfig.response.badRequest(res);
+      }
+    }
+
     try {
       const classData = await classSchema.findOne({ name: classSchool });
 
