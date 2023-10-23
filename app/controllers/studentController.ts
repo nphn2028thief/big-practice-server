@@ -150,14 +150,18 @@ class StudentController {
     }
 
     try {
-      await studentSchema.findByIdAndDelete(studentId);
+      const result = await studentSchema.findByIdAndDelete(studentId);
 
-      return handleConfig.response.success(
-        res,
-        "Delete student successfully!",
-        "studentId",
-        studentId
-      );
+      if (result) {
+        return handleConfig.response.success(
+          res,
+          "Delete student successfully!",
+          "studentId",
+          studentId
+        );
+      }
+
+      return handleConfig.response.notFound(res);
     } catch (error) {
       return handleConfig.response.error(res, "Delete student failure!");
     }

@@ -189,14 +189,18 @@ class TeacherController {
     }
 
     try {
-      await teacherSchema.findByIdAndDelete(teacherId);
+      const result = await teacherSchema.findByIdAndDelete(teacherId);
 
-      return handleConfig.response.success(
-        res,
-        "Delete teacher successfully!",
-        "teacherId",
-        teacherId
-      );
+      if (result) {
+        return handleConfig.response.success(
+          res,
+          "Delete teacher successfully!",
+          "teacherId",
+          teacherId
+        );
+      }
+
+      return handleConfig.response.notFound(res);
     } catch (error) {
       return handleConfig.response.error(res, "Delete teacher failure!");
     }
